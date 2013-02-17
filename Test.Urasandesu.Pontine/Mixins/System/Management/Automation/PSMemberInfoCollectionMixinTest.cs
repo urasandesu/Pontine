@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: PSMemberInfoCollectionMixinTest.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,34 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Linq;
+using System.Management.Automation;
+using NUnit.Framework;
+using Urasandesu.Pontine.Management.Automation;
+using Urasandesu.Pontine.Mixins.System.Management.Automation;
+using Urasandesu.Pontine.Mixins.System.Management.Automation.Runspaces;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Test.Urasandesu.Pontine.Mixins.System.Management.Automation
+{
+    [TestFixture]
+    public class PSMemberInfoCollectionMixinTest
+    {
+        [Test]
+        public void MatchTest_ShouldReturnMatchedValues()
+        {
+            // Arrange
+            var runspace = RunspaceMixin.DefaultRunspace;
+            var a = new PSObject();
+            var m_value = new PSNoteProperty("m_value", 42);
+            m_value.Set_isHidden(true);
+            a.Members.Add(m_value);
+
+            // Act
+            var result = a.Members.Match("*", PSMemberTypes.All, MshMemberMatchOptions.IncludeHidden);
+
+            // Assert
+            Assert.AreEqual(10, result.Count);
+            Assert.IsTrue(result.Select(_ => _.Name).Contains("m_value"));
+        }
+    }
+}

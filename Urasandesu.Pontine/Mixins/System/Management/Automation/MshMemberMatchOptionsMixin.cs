@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: MshMemberMatchOptionsMixin.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,20 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.ComponentModel;
+using System.Management.Automation;
+using Urasandesu.Pontine.Management.Automation;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Urasandesu.Pontine.Mixins.System.Management.Automation
+{
+    public static class MshMemberMatchOptionsMixin
+    {
+        public static readonly Type Type = typeof(PSMemberInfoCollection<>).Assembly.GetType("System.Management.Automation.MshMemberMatchOptions");
+
+        public static Enum Target(this MshMemberMatchOptions source)
+        {
+            return (Enum)TypeDescriptor.GetConverter(typeof(MshMemberMatchOptions)).ConvertTo(source, Type);
+        }
+    }
+}

@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: LanguagePrimitivesMixin.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,28 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.Management.Automation;
+using Urasandesu.NAnonym;
+using Urasandesu.NAnonym.Mixins.System;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Urasandesu.Pontine.Mixins.System.Management.Automation
+{
+    public static class LanguagePrimitivesMixin
+    {
+        const string MethodName_ConvertStringToType = "ConvertStringToType";
+
+        class MethodDelegate_ConvertStringToType_string_out_Exception
+        {
+            public static readonly Exec Invoke = typeof(LanguagePrimitives).GetMethodDelegate(MethodName_ConvertStringToType, new Type[] { typeof(string), typeof(Exception).MakeByRefType() });
+        }
+
+        public static Type ConvertStringToType(string typeName, out Exception exception)
+        {
+            var args = new object[] { typeName, null };
+            var result = (Type)MethodDelegate_ConvertStringToType_string_out_Exception.Invoke(null, args);
+            exception = (Exception)args[1];
+            return result;
+        }
+    }
+}

@@ -51,8 +51,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Mixins\System\Management\Automation\ArgumentTypeConverterAttributeMixin.cs" />
+    <Compile Include="Management\Automation\ArgumentTypeConverterAttributeProxy.cs" />
+    <Compile Include="Management\Automation\ExecutionContextProxy.cs" />
+    <Compile Include="Management\Automation\MshMemberMatchOptions.cs" />
+    <Compile Include="Management\Automation\MshMemberMatchOptionsConverter.cs" />
+    <Compile Include="Management\Automation\ParameterDeclarationNodeProxy.cs" />
+    <Compile Include="Management\Automation\ParseTreeNodeProxy.cs" />
+    <Compile Include="Management\Automation\PSMemberInfoCollectionProxy.cs" />
+    <Compile Include="Management\Automation\PSMemberInfoIntegratingCollectionProxy.cs" />
+    <Compile Include="Management\Automation\PSMemberInfoInternalCollectionProxy.cs" />
+    <Compile Include="Management\Automation\PSObjectProxy.cs" />
+    <Compile Include="Management\Automation\Runspaces\ConsolidatedStringProxy.cs" />
+    <Compile Include="Management\Automation\SessionStateInternalProxy.cs" />
+    <Compile Include="Management\Automation\SessionStateScopeProxy.cs" />
+    <Compile Include="Management\Automation\TypeAcceleratorsProxy.cs" />
+    <Compile Include="Mixins\System\Management\Automation\LanguagePrimitivesMixin.cs" />
+    <Compile Include="Mixins\System\Management\Automation\MshMemberMatchOptionsMixin.cs" />
+    <Compile Include="Mixins\System\Management\Automation\PSMemberInfoCollectionMixin.cs" />
+    <Compile Include="Mixins\System\Management\Automation\PSMemberInfoMixin.cs" />
+    <Compile Include="Mixins\System\Management\Automation\PSObjectMixin.cs" />
+    <Compile Include="Mixins\System\Management\Automation\PSNotePropertyMixin.cs" />
     <Compile Include="Mixins\System\Management\Automation\PSVariableMixin.cs" />
+    <Compile Include="Mixins\System\Management\Automation\PSVariablePropertyMixin.cs" />
+    <Compile Include="Mixins\System\Management\Automation\Runspaces\RunspaceMixin.cs" />
+    <Compile Include="Mixins\System\Management\Automation\ScriptBlockMixin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

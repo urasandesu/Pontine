@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: PSMemberInfoMixinTest.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,28 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Management.Automation;
+using NUnit.Framework;
+using Urasandesu.Pontine.Mixins.System.Management.Automation;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Test.Urasandesu.Pontine.Mixins.System.Management.Automation
+{
+    [TestFixture]
+    public class PSMemberInfoMixinTest
+    {
+        [Test]
+        public void GetIsHiddenTest_ShouldReturnSetValue()
+        {
+            // Arrange
+            var variable = new PSVariable("m_value");
+            var member = new PSVariableProperty(variable);
+            member.Set_isHidden(true);
+
+            // Act
+            var actual = member.Get_isHidden();
+
+            // Assert
+            Assert.IsTrue(actual);
+        }
+    }
+}

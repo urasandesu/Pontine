@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: ParseTreeNodeProxy.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,29 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.Management.Automation;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Urasandesu.Pontine.Management.Automation
+{
+    public abstract class ParseTreeNodeProxy
+    {
+        public static readonly Type Type = typeof(ScriptBlock).Assembly.GetType("System.Management.Automation.ParseTreeNode");
+
+        internal object Target { get; private set; }
+
+        internal ParseTreeNodeProxy(object target)
+        {
+            Target = target;
+        }
+
+        internal static ParseTreeNodeProxy New(object target)
+        {
+            if (target == null)
+                return null;
+
+            if (target.GetType() == ParameterDeclarationNodeProxy.Type) return ParameterDeclarationNodeProxy.New(target);
+            else throw new NotSupportedException();
+        }
+    }
+}

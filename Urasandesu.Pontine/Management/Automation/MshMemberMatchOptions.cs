@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: MshMemberMatchOptions.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,17 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.ComponentModel;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Urasandesu.Pontine.Management.Automation
+{
+    [Flags]
+    [TypeConverter(typeof(MshMemberMatchOptionsConverter))]
+    public enum MshMemberMatchOptions
+    {
+        None = 0,
+        IncludeHidden = 1,
+        OnlySerializable = 2
+    }
+}

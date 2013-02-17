@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: PSNotePropertyMixin.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,37 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.Management.Automation;
+using Urasandesu.NAnonym.Mixins.System;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Urasandesu.Pontine.Mixins.System.Management.Automation
+{
+    public static class PSNotePropertyMixin
+    {
+        public static PSNoteProperty Clone(this PSNoteProperty source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            
+            var clone = (PSNoteProperty)source.Copy();
+            clone.Set_instance(null);
+            var value = default(object);
+            var pso = default(PSObject);
+            if (source.Value == null)
+            {
+                value = null;
+            }
+            else if ((pso = source.Value as PSObject) != null)
+            {
+                value = pso.Clone();
+            }
+            else
+            {
+                value = source.Value.SmartlyClone();
+            }
+            clone.Value = value;
+            return clone;
+        }
+    }
+}

@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: PSObjectProxy.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,33 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.Management.Automation;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Urasandesu.Pontine.Management.Automation
+{
+    public class PSObjectProxy
+    {
+        public const string PSObjectProxyMemberSetName = "psobjectex";
+        PSObject m_target;
+        PSMemberInfoCollectionProxy<PSMemberInfo> m_members;
+
+        public PSObjectProxy(PSObject target)
+        {
+            if (target == null)
+                throw new ArgumentNullException("target");
+
+            m_target = target;
+        }
+
+        public PSMemberInfoCollectionProxy<PSMemberInfo> Members
+        {
+            get
+            {
+                if (m_members == null)
+                    m_members = new PSMemberInfoIntegratingCollectionProxy<PSMemberInfo>(m_target.Members);
+                return m_members;
+            }
+        }
+    }
+}

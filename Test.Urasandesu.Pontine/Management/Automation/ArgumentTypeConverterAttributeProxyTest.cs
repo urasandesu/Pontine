@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: ArgumentTypeConverterAttributeProxyTest.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,25 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using NUnit.Framework;
+using Urasandesu.Pontine.Management.Automation;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Test.Urasandesu.Pontine.Management.Automation
+{
+    [TestFixture]
+    public class ArgumentTypeConverterAttributeProxyTest
+    {
+        [Test]
+        public void CtorTest_ShouldReturnInstance()
+        {
+            // Arrange
+            // nop
+
+            // Act
+            var actual = new ArgumentTypeConverterAttributeProxy(typeof(int));
+
+            // Assert
+            Assert.IsNotNull(actual);
+        }
+    }
+}

@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: PSMemberInfoInternalCollectionProxy.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,20 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.Management.Automation;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Urasandesu.Pontine.Management.Automation
+{
+    public class PSMemberInfoInternalCollectionProxy<T> : PSMemberInfoCollectionProxy<T> where T : PSMemberInfo
+    {
+        public static readonly Type Type = typeof(PSMemberInfoCollection<>).Assembly.GetType("System.Management.Automation.PSMemberInfoInternalCollection`1");
+
+        public PSMemberInfoInternalCollectionProxy(PSMemberInfoCollection<T> target)
+            : base(target)
+        {
+            if (!Type.MakeGenericType(typeof(T)).IsAssignableFrom(target.GetType()))
+                throw new ArgumentException(string.Format("Value is not a type '{0}'.", Type.MakeGenericType(typeof(T)).FullName), "target");
+        }
+    }
+}

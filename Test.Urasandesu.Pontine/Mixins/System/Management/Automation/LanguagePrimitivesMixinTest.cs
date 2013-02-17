@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: LanguagePrimitivesMixinTest.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,30 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using NUnit.Framework;
+using Urasandesu.Pontine.Mixins.System.Management.Automation;
+using Urasandesu.Pontine.Mixins.System.Management.Automation.Runspaces;
 
-[assembly: AssemblyTitle("Test.Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Test.Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("dbc4d57f-45af-4cdc-ae5a-15bd458db047")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+namespace Test.Urasandesu.Pontine.Mixins.System.Management.Automation
+{
+    [TestFixture]
+    public class LanguagePrimitivesMixinTest
+    {
+        [Test]
+        public void ConvertStringToTypeTest_ShouldReturnType_IfValidValueIsPassed()
+        {
+            // Arrange
+            var runspace = RunspaceMixin.DefaultRunspace;
+            var typeName = "string[]";
+            var exception = default(Exception);
+
+            // Act
+            var actual = LanguagePrimitivesMixin.ConvertStringToType(typeName, out exception);
+
+            // Assert
+            Assert.AreEqual(typeof(string[]), actual);
+            Assert.IsNull(exception);
+        }
+    }
+}
