@@ -53,6 +53,8 @@
   <ItemGroup>
     <Compile Include="Management\Automation\ArgumentTypeConverterAttributeProxy.cs" />
     <Compile Include="Management\Automation\ExecutionContextProxy.cs" />
+    <Compile Include="Management\Automation\FastClosureAutomaticParameterAttribute.cs" />
+    <Compile Include="Management\Automation\FastClosureCache.cs" />
     <Compile Include="Management\Automation\MshMemberMatchOptions.cs" />
     <Compile Include="Management\Automation\MshMemberMatchOptionsConverter.cs" />
     <Compile Include="Management\Automation\ParameterDeclarationNodeProxy.cs" />

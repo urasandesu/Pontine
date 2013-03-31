@@ -350,13 +350,13 @@ namespace Test.Urasandesu.Pontine.Mixins.System.Management.Automation
             var results = default(Collection<PSObject>);
             var command =
 @"
-function Hoge {
-    param ($value)
-    [Urasandesu.Pontine.Mixins.System.Management.Automation.ScriptBlockMixin]::GetNewFastClosure({ $value })
+function Identity {
+    param ($Value)
+    [Urasandesu.Pontine.Mixins.System.Management.Automation.ScriptBlockMixin]::GetNewFastClosure({ $Value })
 }
 
-$command = Hoge (10)
-& $command
+$command = Identity(10)
+$command.Invoke()
 ";
 
             // Act
@@ -366,6 +366,125 @@ $command = Hoge (10)
             // Assert
             Assert.AreEqual(1, results.Count);
             Assert.AreEqual(10, results[0].BaseObject);
+        }
+
+
+        [Test]
+        public void GetNewFastClosureTest_ShouldCloseDesignatedScopes()
+        {
+            // Arrange
+            var runspace = RunspaceMixin.DefaultRunspace;
+            var results = default(Collection<PSObject>);
+            var command =
+@"
+function Get-AnySatisfied {
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        $InputObject, 
+        
+        [Parameter(Position = 0)]
+        [scriptblock]
+        $Predicate
+    )
+    
+    $ScriptBlockMixin = [Urasandesu.Pontine.Mixins.System.Management.Automation.ScriptBlockMixin]
+    $result = @($false)
+    do {
+        & $InputObject | 
+            ForEach-Object {
+                $1 = $_
+                $command = $ScriptBlockMixin::GetNewFastClosure($predicate, 0, 1)
+                if ($ScriptBlockMixin::FastInvokeReturnAsIs($command, $_)) {
+                    $result[0] = $true
+                    break
+                }
+            }
+    } until ($true)
+    
+    $result[0]
+}
+
+function Identity {
+    param ($Value)
+    { 1..10 } |  Get-AnySatisfied { $1 -eq $Value }
+}
+
+Identity(5)
+Identity(11)
+";
+
+            // Act
+            using (var pipeline = runspace.CreatePipeline(command, false))
+                results = pipeline.Invoke();
+
+            // Assert
+            Assert.AreEqual(2, results.Count);
+            Assert.AreEqual(true, results[0].BaseObject);
+            Assert.AreEqual(false, results[1].BaseObject);
+        }
+
+
+        [Test]
+        public void FastInvokeTest_ShouldParseParamsInSameMannerAsNormal()
+        {
+            // Arrange
+            var runspace = RunspaceMixin.DefaultRunspace;
+            var results = default(Collection<PSObject>);
+            var command =
+@"
+$ScriptBlockMixin = [Urasandesu.Pontine.Mixins.System.Management.Automation.ScriptBlockMixin]
+
+$test1 = {
+    $Params[0]
+}
+
+$closure = $ScriptBlockMixin::GetNewFastClosure($test1)
+$ScriptBlockMixin::FastInvoke($closure, 1, 2, 3)
+$ScriptBlockMixin::FastInvoke($closure, (,(1, 2, 3)))
+";
+
+            // Act
+            using (var pipeline = runspace.CreatePipeline(command, false))
+                results = pipeline.Invoke();
+
+            // Assert
+            Assert.AreEqual(4, results.Count);
+            Assert.AreEqual(1, results[0].BaseObject);
+            Assert.AreEqual(1, results[1].BaseObject);
+            Assert.AreEqual(2, results[2].BaseObject);
+            Assert.AreEqual(3, results[3].BaseObject);
+        }
+
+
+        [Test]
+        public void FastInvokeReturnAsIsTest_ShouldParseParamsInSameMannerAsNormal()
+        {
+            // Arrange
+            var runspace = RunspaceMixin.DefaultRunspace;
+            var results = default(Collection<PSObject>);
+            var command =
+@"
+$ScriptBlockMixin = [Urasandesu.Pontine.Mixins.System.Management.Automation.ScriptBlockMixin]
+
+$test1 = {
+    $Params[0]
+}
+
+$closure = $ScriptBlockMixin::GetNewFastClosure($test1)
+$ScriptBlockMixin::FastInvokeReturnAsIs($closure, 1, 2, 3)
+$ScriptBlockMixin::FastInvokeReturnAsIs($closure, (,(1, 2, 3)))
+";
+
+            // Act
+            using (var pipeline = runspace.CreatePipeline(command, false))
+                results = pipeline.Invoke();
+
+            // Assert
+            Assert.AreEqual(4, results.Count);
+            Assert.AreEqual(1, results[0].BaseObject);
+            Assert.AreEqual(1, results[1].BaseObject);
+            Assert.AreEqual(2, results[2].BaseObject);
+            Assert.AreEqual(3, results[3].BaseObject);
         }
     }
 }

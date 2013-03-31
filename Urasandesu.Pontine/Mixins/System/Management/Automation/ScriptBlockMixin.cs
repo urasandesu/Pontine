@@ -30,6 +30,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management.Automation;
 using Urasandesu.NAnonym;
@@ -107,59 +108,38 @@ namespace Urasandesu.Pontine.Mixins.System.Management.Automation
 
         public static ScriptBlock GetNewFastClosure(this ScriptBlock source)
         {
-            return source.GetNewFastClosure(null);
+            return source.GetNewFastClosureWithSpecifiedParameterName(DefaultFastClosureAutomaticParameterName, 0);
         }
 
-        public static ScriptBlock GetNewFastClosure(this ScriptBlock source, string scope)
+        public static ScriptBlock GetNewFastClosure(this ScriptBlock source, params object[] scopes)
         {
-            return source.GetNewFastClosure(scope, DefaultFastClosureAutomaticParameterName);
+            return source.GetNewFastClosureWithSpecifiedParameterName(DefaultFastClosureAutomaticParameterName, scopes);
         }
 
-        public static ScriptBlock GetNewFastClosure(this ScriptBlock source, string scope, string fastClosureAutomaticParameterName)
+        public static ScriptBlock GetNewFastClosureWithSpecifiedParameterName(this ScriptBlock source, string fastClosureAutomaticParameterName, params object[] scopes)
         {
+            if (scopes == null)
+                throw new ArgumentNullException("scopes");
+
             var closure = source.CloneWithIsolatedParameterDefinition();
-            var scopeValue = 0;
-            if (string.IsNullOrEmpty(scope) || string.Compare(scope, "Local", true) == 0)
-                scopeValue = 0;
-            else if (string.Compare(scope, "Global", true) == 0)
-                scopeValue = -1;
-            else if (string.Compare(scope, "Script", true) == 0)
-                scopeValue = -2;
-            else if (!int.TryParse(scope, out scopeValue))
-                throw new ArgumentException("Cannot process argument because the value of argument \"scope\" is invalid.", "scope");
-
             var paramList = closure.Get_RuntimeDefinedParameterList();
             var @params = closure.Get_RuntimeDefinedParameters();
 
             var paramDecl = closure.Get__parameterDeclaration();
             if (paramDecl == null)
             {
-                var dummy = ScriptBlock.Create(@"param ([parameter(ValueFromRemainingArguments = $true)][Object[]]$" + fastClosureAutomaticParameterName + @" = @()) $null");
+                var dummy = ScriptBlock.Create(@"param ([Object[]]$" + fastClosureAutomaticParameterName + @") $null");
                 closure.Set__parameterDeclaration(dummy.Get__parameterDeclaration());
-                paramList.AddRange(dummy.Get_RuntimeDefinedParameterList());
-                @params.AddRange(dummy.Get_RuntimeDefinedParameters());
+                closure.Set__initialized(false);
+                paramList = closure.Get_RuntimeDefinedParameterList();
+                paramList[0].Attributes.Add(new FastClosureAutomaticParameterAttribute());
+                @params = closure.Get_RuntimeDefinedParameters();
             }
 
-            var targetScope = default(SessionStateScopeProxy);
-            switch (scopeValue)
+            var variableEntries = RunspaceMixin.DefaultRunspace.GetAggregatedUserDefinedMutableVariables(scopes);
+            foreach (var variableEntry in variableEntries.Where(_ => fastClosureAutomaticParameterName != _.Key && !@params.ContainsKey(_.Key)))
             {
-                case -2:
-                    targetScope = RunspaceMixin.DefaultRunspace.Get_ExecutionContext().EngineSessionState.ScriptScope;
-                    break;
-                case -1:
-                    targetScope = RunspaceMixin.DefaultRunspace.Get_ExecutionContext().EngineSessionState.GlobalScope;
-                    break;
-                default:
-                    targetScope = RunspaceMixin.DefaultRunspace.Get_ExecutionContext().EngineSessionState.CurrentScope;
-                    for (int i = 0; i < scopeValue && targetScope.Parent != null; i++)
-                        targetScope = targetScope.Parent;
-                    break;
-            }
-            var allVariables = targetScope.Variables;
-            var userDefinedVariables = allVariables.Where(_ => !RunspaceMixin.AutomaticVariableNameMap.Contains(_.Key) && fastClosureAutomaticParameterName != _.Key);
-            foreach (var userDefinedVariable in userDefinedVariables)
-            {
-                var variable = userDefinedVariable.Value;
+                var variable = variableEntry.Value;
                 var name = variable.Name;
                 var parameterType = variable.Value == null ? typeof(object) : variable.Value.GetType();
                 var attributes = variable.Attributes;
@@ -170,6 +150,34 @@ namespace Urasandesu.Pontine.Mixins.System.Management.Automation
             }
 
             return closure;
+        }
+
+        public static Collection<PSObject> FastInvoke(this ScriptBlock source, params object[] args)
+        {
+            var paramList = source.Get_RuntimeDefinedParameterList();
+            var param = paramList.FirstOrDefault();
+            if (param != null && 0 < param.Attributes.Count && param.Attributes[param.Attributes.Count - 1] is FastClosureAutomaticParameterAttribute)
+            {
+                return source.Invoke(new object[] { args });
+            }
+            else
+            {
+                return source.Invoke(args);
+            }
+        }
+
+        public static object FastInvokeReturnAsIs(this ScriptBlock source, params object[] args)
+        {
+            var paramList = source.Get_RuntimeDefinedParameterList();
+            var param = paramList.FirstOrDefault();
+            if (param != null && 0 < param.Attributes.Count && param.Attributes[param.Attributes.Count - 1] is FastClosureAutomaticParameterAttribute)
+            {
+                return source.InvokeReturnAsIs(new object[] { args });
+            }
+            else
+            {
+                return source.InvokeReturnAsIs(args);
+            }
         }
 
         const string FieldName__initialized = "_initialized";

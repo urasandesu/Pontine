@@ -1,5 +1,5 @@
 ﻿/* 
- * File: AssemblyInfo.cs
+ * File: RunspaceMixinTest.cs
  * 
  * Author: Akira Sugiura (urasandesu@gmail.com)
  * 
@@ -28,18 +28,40 @@
  */
 
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
+using System.Management.Automation;
+using NUnit.Framework;
+using Urasandesu.Pontine.Mixins.System.Management.Automation.Runspaces;
 
-[assembly: AssemblyTitle("Urasandesu.Pontine")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Urasandesu.Pontine")]
-[assembly: AssemblyCopyright("Copyright © Akira Sugiura 2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: Guid("0b0a7f10-69be-43f4-be92-53fb62963e08")]
-[assembly: AssemblyVersion("0.2.0.0")]
-[assembly: AssemblyFileVersion("0.2.0.0")]
+namespace Test.Urasandesu.Pontine.Mixins.System.Management.Automation.Runspaces
+{
+    [TestFixture]
+    public class RunspaceMixinTest
+    {
+        [Test]
+        public void CopyVariablesToTest_CanAccessToVariablesInAnotherRunspace()
+        {
+            // Arrange
+            var runspace = RunspaceMixin.DefaultRunspace;
+            var results = default(Collection<PSObject>);
+            var command =
+@"
+$value = 42
+$runspace = [runspaceFactory]::CreateRunspace()
+$runspace.Open()
+[Urasandesu.Pontine.Mixins.System.Management.Automation.Runspaces.RunspaceMixin]::CopyVariablesTo(([runspace]::DefaultRunspace), $runspace, 0)
+$pipeline = $runspace.CreatePipeline({ $value })
+$pipeline.Invoke()
+$runspace.Dispose()
+";
+
+            // Act
+            using (var pipeline = runspace.CreatePipeline(command, false))
+                results = pipeline.Invoke();
+
+            // Assert
+            Assert.AreEqual(1, results.Count);
+            Assert.AreEqual(42, results[0].BaseObject);
+        }
+    }
+}

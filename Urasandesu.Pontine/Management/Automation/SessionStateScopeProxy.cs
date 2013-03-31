@@ -84,7 +84,8 @@ namespace Urasandesu.Pontine.Management.Automation
         {
             get
             {
-                return new SessionStateScopeProxy(PropertyGetterDelegate_Parent.Get(m_target));
+                var value = PropertyGetterDelegate_Parent.Get(m_target);
+                return value == null ? null : new SessionStateScopeProxy(value);
             }
             set
             {

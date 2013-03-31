@@ -47,10 +47,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Management\Automation\ArgumentTypeConverterAttributeProxyTest.cs" />
+    <Compile Include="Management\Automation\FastClosureCacheTest.cs" />
     <Compile Include="Mixins\System\Management\Automation\LanguagePrimitivesMixinTest.cs" />
     <Compile Include="Mixins\System\Management\Automation\PSMemberInfoMixinTest.cs" />
     <Compile Include="Mixins\System\Management\Automation\PSObjectMixinTest.cs" />
     <Compile Include="Mixins\System\Management\Automation\PSVariableMixinTest.cs" />
+    <Compile Include="Mixins\System\Management\Automation\Runspaces\RunspaceMixinTest.cs" />
     <Compile Include="Mixins\System\Management\Automation\ScriptBlockMixinTest.cs" />
     <Compile Include="Mixins\System\Management\Automation\PSMemberInfoCollectionMixinTest.cs" />
     <Compile Include="Mixins\System\Management\Automation\TypeAcceleratorsProxyTest.cs" />

@@ -30,10 +30,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using Urasandesu.NAnonym;
 using Urasandesu.NAnonym.Mixins.System;
+using Urasandesu.NAnonym.Mixins.System.Linq;
 using Urasandesu.Pontine.Management.Automation;
 
 namespace Urasandesu.Pontine.Mixins.System.Management.Automation.Runspaces
@@ -73,6 +75,111 @@ namespace Urasandesu.Pontine.Mixins.System.Management.Automation.Runspaces
                 throw new ArgumentNullException("source");
 
             return new ExecutionContextProxy(PropertyGetterDelegate_ExecutionContext.Get(source));
+        }
+
+        internal readonly static Func<object, int> ObjectToScopeValue =
+            scope =>
+            {
+                var s = default(string);
+                var i = default(int?);
+                if ((s = scope as string) != null)
+                    return StringToScopeValue(s);
+                else if ((i = scope as int?) != null)
+                    return (int)i;
+                else
+                    throw new ArgumentException("Cannot process argument because the value of argument \"scopes\" is invalid.", "scopes");
+            };
+
+        internal readonly static Func<string, int> StringToScopeValue =
+            scope =>
+            {
+                var i = default(int);
+                if (string.IsNullOrEmpty(scope) || string.Compare(scope, "Local", true) == 0)
+                    return 0;
+                else if (int.TryParse(scope, out i))
+                    return i;
+                else
+                    throw new ArgumentException("Cannot process argument because the value of argument \"scopes\" is invalid.", "scopes");
+            };
+
+        public static IDictionary<string, PSVariable> GetAggregatedVariables(this Runspace source, params object[] scopes)
+        {
+            if (scopes == null)
+                throw new ArgumentNullException("scopes");
+
+            return source.GetAggregatedVariables(scopes.Select(ObjectToScopeValue).ToArray());
+        }
+
+        public static IDictionary<string, PSVariable> GetAggregatedVariables(this Runspace source, int[] scopeValues)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+
+            var aggregatedVariables = new Dictionary<string, PSVariable>();
+            foreach (var scopeValue in scopeValues)
+            {
+                var lastScope = default(SessionStateScopeProxy);
+                var variables = default(IDictionary<string, PSVariable>);
+                switch (scopeValue)
+                {
+                    case int.MaxValue:
+                        if (lastScope == null)
+                            lastScope = source.Get_ExecutionContext().EngineSessionState.CurrentScope;
+                        for (lastScope = lastScope.Parent; lastScope != null; lastScope = lastScope.Parent)
+                            if (variables != null)
+                                variables.AddOrUpdateRange(lastScope.Variables);
+                            else
+                                variables = new Dictionary<string, PSVariable>(lastScope.Variables);
+                        break;
+                    default:
+                        var currentScope = source.Get_ExecutionContext().EngineSessionState.CurrentScope;
+                        for (int i = 0; i < scopeValue && currentScope.Parent != null; i++)
+                            currentScope = currentScope.Parent;
+                        variables = new Dictionary<string, PSVariable>(currentScope.Variables);
+                        lastScope = currentScope;
+                        break;
+                }
+                aggregatedVariables.AddOrUpdateRange(variables);
+            }
+            return aggregatedVariables;
+        }
+
+        public static IDictionary<string, PSVariable> GetAggregatedUserDefinedMutableVariables(this Runspace source, params object[] scopes)
+        {
+            if (scopes == null)
+                throw new ArgumentNullException("scopes");
+
+            return source.GetAggregatedUserDefinedMutableVariables(scopes.Select(ObjectToScopeValue).ToArray());
+        }
+
+        public static IDictionary<string, PSVariable> GetAggregatedUserDefinedMutableVariables(this Runspace source, int[] scopeValues)
+        {
+            var variableEntries = source.GetAggregatedVariables(scopeValues);
+            variableEntries.MutableForEach((@this, entry) =>
+            {
+                var variable = entry.Value;
+                if ((variable.Options & ScopedItemOptions.Constant) == ScopedItemOptions.Constant ||
+                    (variable.Options & ScopedItemOptions.ReadOnly) == ScopedItemOptions.ReadOnly ||
+                    (variable.Options & ScopedItemOptions.AllScope) == ScopedItemOptions.AllScope ||
+                    AutomaticVariableNameMap.Contains(variable.Name))
+                    @this.Remove(variable.Name);
+            });
+            return variableEntries;
+        }
+
+        public static void CopyVariablesTo(this Runspace source, Runspace destination, params object[] scopes)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (destination == null)
+                throw new ArgumentNullException("destination");
+
+            var variableEntries = source.GetAggregatedUserDefinedMutableVariables(scopes);
+            foreach (var variableEntry in variableEntries)
+            {
+                var variable = variableEntry.Value;
+                destination.SessionStateProxy.SetVariable(variable.Name, variable.Value);
+            }
         }
     }
 }
